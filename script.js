@@ -24,10 +24,7 @@
   const toast = $('#toast');
   const fx = $('#fx');
   const glow = $('#glow');
-  const petalsBtn = $('#petalsBtn');
   const wishBtn = $('#wishBtn');
-  const replayBtn = $('#replayBtn');
-
   let timers = [];
   const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
   const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -513,26 +510,10 @@ ${dots(62, 68, .85, 2.5, true)}`;
     burst(x, y, fl.dataset.c1, fl.dataset.c2);
   });
 
-  petalsBtn.addEventListener('click', () => petalShower(34));
+
   wishBtn.addEventListener('click', makeWish);
 
-  replayBtn.addEventListener('click', () => {
-    if (busy) return;
-    busy = true;
-    clearTimers();
-    const f = reduced() ? 0.3 : 1;
-    garden.classList.add('fading');
-    card.classList.remove('is-shown');
-    closing.classList.remove('is-shown');
-    actions.classList.remove('is-shown');
-    toast.classList.remove('show');
-    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' });
-    later(() => {
-      resetStage();
-      garden.classList.remove('fading');
-      startGarden();
-    }, 600 * f);
-  });
+
 
   /* Gentle ambient petals while the garden is open */
   setInterval(() => {
