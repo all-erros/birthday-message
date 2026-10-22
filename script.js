@@ -15,7 +15,6 @@
   const reduced = () => reduceMq.matches;
 
   const intro = $('#intro');
-  const openBtn = $('#openBtn');
   const scene = $('#scene');
   const garden = $('#garden');
   const card = $('#card');
@@ -24,9 +23,6 @@
   const toast = $('#toast');
   const fx = $('#fx');
   const glow = $('#glow');
-  const petalsBtn = $('#petalsBtn');
-  const wishBtn = $('#wishBtn');
-  const replayBtn = $('#replayBtn');
 
   let timers = [];
   const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
@@ -36,9 +32,6 @@
   let busy = true;
   let gardenBuilt = false;
 
-  /* ------------------------------------------------------
-     Seeded random so the garden layout is always lovely
-     ------------------------------------------------------ */
   function mulberry32(a) {
     return function () {
       a |= 0; a = (a + 0x6D2B79F5) | 0;
@@ -48,9 +41,6 @@
     };
   }
 
-  /* ------------------------------------------------------
-     Background particles
-     ------------------------------------------------------ */
   function buildParticles() {
     const box = $('#particles');
     const count = window.innerWidth < 600 ? 26 : 44;
@@ -71,9 +61,6 @@
     box.appendChild(frag);
   }
 
-  /* ------------------------------------------------------
-     Flower drawings (all SVG, no images)
-     ------------------------------------------------------ */
   let uid = 0;
 
   const TULIPS = [
@@ -262,9 +249,6 @@ ${dots(62, 68, .85, 2.5, true)}`;
     }
   }
 
-  /* ------------------------------------------------------
-     Falling petals, sparkles, bursts (Web Animations API)
-     ------------------------------------------------------ */
   const PETAL_COLORS = [
     ['#f9cfd5', '#f0a5b3'], ['#fde4e8', '#f6bdc8'], ['#fff0c6', '#f7d98a'],
     ['#fbd9cc', '#eeb09f'], ['#ffffff', '#f3dede']
@@ -368,9 +352,6 @@ ${dots(62, 68, .85, 2.5, true)}`;
     }
   }
 
-  /* ------------------------------------------------------
-     Wish
-     ------------------------------------------------------ */
   let toastTimer = null;
   function showToast(msg) {
     toast.textContent = msg;
@@ -395,9 +376,6 @@ ${dots(62, 68, .85, 2.5, true)}`;
     showToast('Wish made. I hope it comes true ♡');
   }
 
-  /* ------------------------------------------------------
-     The letter: words fade in gently
-     ------------------------------------------------------ */
   function prepareCard() {
     $$('[data-reveal]', card).forEach((el) => {
       if (el.dataset.ready) return;
@@ -454,6 +432,7 @@ ${dots(62, 68, .85, 2.5, true)}`;
     void garden.offsetWidth;
     garden.classList.add('bloom');
     scene.classList.add('flying');
+    petalShower(44);
     const f = reduced() ? 0.35 : 1;
     later(revealCard, 3600 * f);
   }
@@ -462,15 +441,13 @@ ${dots(62, 68, .85, 2.5, true)}`;
     prepareCard();
     buildGarden();
     scene.hidden = false;
+    intro.hidden = true;
     window.scrollTo(0, 0);
     requestAnimationFrame(() => requestAnimationFrame(() => scene.classList.add('is-on')));
     try { scene.focus({ preventScroll: true }); } catch (e) { /* ignore */ }
     startGarden();
   }
 
-  /* ------------------------------------------------------
-     Opening the gift
-     ------------------------------------------------------ */
   function envelopeSparkles() {
     const r = $('#envelope').getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height * 0.3;
@@ -484,20 +461,13 @@ ${dots(62, 68, .85, 2.5, true)}`;
     }
   }
 
-  openBtn.addEventListener('click', () => {
-    if (opened) return;
-    opened = true;
-    openBtn.disabled = true;
-    const f = reduced() ? 0.3 : 1;
+  later(() => {
     intro.classList.add('is-opening');
-    later(envelopeSparkles, 1000 * f);
-    later(() => intro.classList.add('is-leaving'), 2500 * f);
-    later(() => { intro.hidden = true; showScene(); }, 3400 * f);
-  });
+    later(envelopeSparkles, 1000);
+    later(() => intro.classList.add('is-leaving'), 2500);
+    later(() => showScene(), 3400);
+  }, 300);
 
-  /* ------------------------------------------------------
-     Interactions
-     ------------------------------------------------------ */
   garden.addEventListener('click', (e) => {
     const fl = e.target.closest && e.target.closest('.flower');
     if (!fl || !garden.classList.contains('bloom')) return;
@@ -513,28 +483,6 @@ ${dots(62, 68, .85, 2.5, true)}`;
     burst(x, y, fl.dataset.c1, fl.dataset.c2);
   });
 
-  petalsBtn.addEventListener('click', () => petalShower(34));
-  wishBtn.addEventListener('click', makeWish);
-
-  replayBtn.addEventListener('click', () => {
-    if (busy) return;
-    busy = true;
-    clearTimers();
-    const f = reduced() ? 0.3 : 1;
-    garden.classList.add('fading');
-    card.classList.remove('is-shown');
-    closing.classList.remove('is-shown');
-    actions.classList.remove('is-shown');
-    toast.classList.remove('show');
-    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' });
-    later(() => {
-      resetStage();
-      garden.classList.remove('fading');
-      startGarden();
-    }, 600 * f);
-  });
-
-  /* Gentle ambient petals while the garden is open */
   setInterval(() => {
     if (!scene.classList.contains('is-on') || document.hidden || reduced()) return;
     if (activePetals < 8) spawnPetal();
